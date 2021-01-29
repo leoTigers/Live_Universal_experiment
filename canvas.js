@@ -286,7 +286,20 @@ $(function (){
     });
     updateLimits();
     //updateTool();
+
+    $("body").on("keydown", function (k){
+        if(k.key === "ArrowRight"){
+            document.getElementById("items").children[tool].style.background = "limegreen";
+            tool = (tool+1)%11
+            document.getElementById("items").children[tool].style.background = "red";
+        }else if(k.key === "ArrowLeft"){
+            document.getElementById("items").children[tool].style.background = "limegreen";
+            tool = tool===0?10:tool-1
+            document.getElementById("items").children[tool].style.background = "red";
+        }
+    })
 });
+
 
 function updateLimits(){
     let limitSpan = document.getElementById("limits")
