@@ -269,7 +269,7 @@ $(function (){
     for(let i = 0 ; i < TOOLS.length ; i++){
         let td = document.createElement("td")
         let img = document.createElement("img")
-        img.src = TOOLS[i]
+        img.src = "img/"+TOOLS[i]
         td.appendChild(img)
         items.appendChild(td)
     }
