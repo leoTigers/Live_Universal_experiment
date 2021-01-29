@@ -1,0 +1,21 @@
+table{
+    border: 1px solid black;
+    background: green;
+    align-items: center;
+    text-align: center;
+}
+#exp{
+    height: 500px;
+    width: 500px;
+}
+td{
+    height: 50px;
+    width: 50px;
+    border: 1px solid darkgreen;
+    background: limegreen;
+}
+
+img{
+    height: 50px;
+    width: 50px;
+}
