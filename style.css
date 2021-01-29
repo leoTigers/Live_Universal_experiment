@@ -1,8 +1,13 @@
+body {
+    background-color: black;
+    color: white;
+}
 table{
     border: 1px solid black;
     background: green;
     align-items: center;
     text-align: center;
+    margin: auto;
 }
 #exp{
     height: 500px;
@@ -18,4 +23,11 @@ td{
 img{
     height: 50px;
     width: 50px;
+}
+div{
+    margin: 20px auto;
+    max-width: 150px;
+    }
+h2{
+    display: inline;
 }

@@ -277,10 +277,32 @@ $(function (){
     add_handlers()
     gr.simulate()
 
+    $("#items > td").first()[0].style.background = "red";
+
     $("#items > td").on("mousedown", function (e){
+        this.parentElement.children[tool].style.background = "limegreen";
         tool = this.cellIndex
-    })
+        this.parentElement.children[tool].style.background = "red";
+    });
+    updateLimits();
+    //updateTool();
 });
+
+function updateLimits(){
+    let limitSpan = document.getElementById("limits")
+    limitSpan.innerHTML = "<br/>Five use arrows : "+gr.limits[0]+"/"+MAX_FIVE_ARROW+
+        "<br/>Rotating arrows : "+gr.limits[1]+"/"+MAX_ROT_ARROW+
+        "<br/>Infinite arrow : "+gr.limits[2]+"/"+MAX_INF_ARROW+
+        "<br/>Refresh orb : "+gr.limits[3]+"/"+MAX_REFRESH
+}
+/*
+function updateTool(){
+    let CT = document.getElementById("currentTool")
+    CT.innerHTML = ""
+    let img = document.createElement("img")
+    img.src = "img/"+TOOLS[tool]
+    CT.appendChild(img)
+}*/
 
 function add_handlers(){
     $("#exp > tr > td").on("mousedown",
@@ -304,6 +326,7 @@ function add_handlers(){
             this.innerHTML = ""
             this.appendChild(gr.grid[row][col].draw())
             gr.simulate()
+            updateLimits()
         });
 }
 
