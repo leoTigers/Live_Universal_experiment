@@ -19,6 +19,9 @@ td{
     border: 1px solid darkgreen;
     background: limegreen;
 }
+td.active{
+    background: red !important;
+}
 
 img{
     height: 50px;
@@ -30,4 +33,11 @@ div{
     }
 h2{
     display: inline;
+}
+
+textarea{
+    width: 300px;
+    height: 100px;
+    background-color: black;
+    color: white;
 }

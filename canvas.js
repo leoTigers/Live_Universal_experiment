@@ -41,16 +41,11 @@ class Grid{
         }
     }
 
-    draw(){
-        let table = document.getElementById("exp")
-        for(let i=0;i<GRID_SIZE;i++){
-            let tr = document.createElement("tr")
-            for(let j=0;j<GRID_SIZE;j++){
-                let td = document.createElement('td')
-                td.appendChild(this.grid[i][j].draw())
-                tr.appendChild(td)
-            }
-            table.appendChild(tr)
+    update(){
+        let tds = document.getElementById("exp").getElementsByTagName("td")
+        for(let i = 0 ; i < GRID_SIZE*GRID_SIZE ; i++){
+            tds[i].innerHTML = ""
+            tds[i].appendChild(this.grid[Math.floor(i/GRID_SIZE)][i%GRID_SIZE].to_html())
         }
     }
 
@@ -174,23 +169,36 @@ class Grid{
                 }
             }
         } while (!end);
-        let score_span = document.getElementById("score")
-        score_span.innerHTML = ""+score
+        return score
+    }
+
+    load_from_json(json){
+        this.limits = json.limits
+        this.grid = []
+        for(let i=0;i<GRID_SIZE;i++){
+            let tmp = []
+            for(let j=0;j<GRID_SIZE;j++){
+                let component = new Component(json.grid[i][j].type, json.grid[i][j].rotation)
+                tmp.push(component)
+            }
+            this.grid.push(tmp)
+        }
+        this.update()
     }
 }
 
 class Component{
-    constructor() {
-        this.type = 0
-        this.rotation = 0
-        this.current_rotation = 0
+    constructor(type=0, rotation=0) {
+        this.type = type
+        this.rotation = rotation
+        this.current_rotation = rotation
         this.current_uses = 0
-
-
     }
+
     refresh(){
         this.current_uses = 0
     }
+
     isActive(){
         switch (this.type){
             case OBJECT_TYPE.SINGLE_ARROW:
@@ -246,11 +254,13 @@ class Component{
     rotate(){
         this.rotation = (this.rotation + 1) % 8
     }
+
     rotateA(){
         this.rotation--;
         this.rotation = this.rotation < 0 ? 7 : this.rotation
     }
-    draw(){
+
+    to_html(){
         let img = document.createElement("img")
         img.src = "img/"+TOOLS[this.type]
         img.style = "transform:rotate("+(-135+45*this.rotation)+"deg);"
@@ -262,7 +272,9 @@ let gr = new Grid()
 let tool = OBJECT_TYPE.SINGLE_ARROW
 
 $(function (){
-    gr.draw()
+    init_grid()
+    gr.update()
+    //gr.draw()
     console.log("Heelo")
 
     let items = document.getElementById("items")
@@ -271,34 +283,41 @@ $(function (){
         let img = document.createElement("img")
         img.src = "img/"+TOOLS[i]
         td.appendChild(img)
+        if(i === 0)
+            td.classList.add("active")
         items.appendChild(td)
     }
 
     add_handlers()
-    gr.simulate()
+    let score = gr.simulate()
+    setScore(score)
 
-    $("#items > td").first()[0].style.background = "red";
 
     $("#items > td").on("mousedown", function (e){
-        this.parentElement.children[tool].style.background = "limegreen";
+        this.parentElement.children[tool].classList.remove("active");
         tool = this.cellIndex
-        this.parentElement.children[tool].style.background = "red";
+        this.classList.add("active")
     });
     updateLimits();
     //updateTool();
 
     $("body").on("keydown", function (k){
         if(k.key === "ArrowRight"){
-            document.getElementById("items").children[tool].style.background = "limegreen";
+            document.getElementById("items").children[tool].classList.remove("active");
             tool = (tool+1)%11
-            document.getElementById("items").children[tool].style.background = "red";
+            document.getElementById("items").children[tool].classList.add("active");
         }else if(k.key === "ArrowLeft"){
-            document.getElementById("items").children[tool].style.background = "limegreen";
+            document.getElementById("items").children[tool].classList.remove("active");
             tool = tool===0?10:tool-1
-            document.getElementById("items").children[tool].style.background = "red";
+            document.getElementById("items").children[tool].classList.add("active");
         }
     })
 });
+
+function setScore(score){
+    let score_span = document.getElementById("score")
+    score_span.innerHTML = ""+score
+}
 
 
 function updateLimits(){
@@ -337,10 +356,23 @@ function add_handlers(){
                 }
             }
             this.innerHTML = ""
-            this.appendChild(gr.grid[row][col].draw())
-            gr.simulate()
+            this.appendChild(gr.grid[row][col].to_html())
+            let score = gr.simulate()
+            setScore(score)
             updateLimits()
         });
+}
+
+function init_grid(){
+    let table = document.getElementById("exp")
+    for(let i=0;i<GRID_SIZE;i++){
+        let tr = document.createElement("tr")
+        for(let j=0;j<GRID_SIZE;j++){
+            let td = document.createElement('td')
+            tr.appendChild(td)
+        }
+        table.appendChild(tr)
+    }
 }
 
 function export_base64(){
@@ -350,8 +382,7 @@ function export_base64(){
 function import_base64(){
     let b64 = atob(document.getElementById("import_zone").value)
     let g64 = JSON.parse(b64)
-    gr = new Grid(g64.grid, g64.limits);
-    gr.draw()
-
-    add_handlers()
+    gr.load_from_json(g64)
+    let score = gr.simulate()
+    setScore(score)
 }
