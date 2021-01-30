@@ -8,26 +8,35 @@
 	<title>Title</title>
 </head>
 <body>
-<table id="exp">
+<div class="experiment">
 
-</table>
-<table>
-	<tr id="items">
-	</tr>
-</table>
-<div>
-	<h2>Score : <span id="score"></span></h2>
+	<div >
+		<table id="exp">
+
+		</table>
+		<table>
+			<tr id="items">
+			</tr>
+		</table>
+		<h2>Score : <span id="score"></span></h2>
+	</div>
+	<div class="exps">
+		<h2>Expected score on tool usage</h2>
+		<table id="exp_scores">
+
+		</table>
+	</div>
 </div>
 <!--
 <div>
-	Current tool:<span id="currentTool"></span>
+Current tool:<span id="currentTool"></span>
 </div>-->
-<div><h2>Limits : </h2><span id="limits"></span></div>
-<div>
+<div class="bottoms"><h2>Limits : </h2><span id="limits"></span></div>
+<div class="bottoms">
 	<button onclick="export_base64()">Export</button>
 	<label for="export_zone"></label><textarea id="export_zone"></textarea>
 </div>
-<div>
+<div class="bottoms">
 	<button onclick="import_base64()">Import</button>
 	<label for="import_zone"></label><textarea id="import_zone"></textarea>
 </div>

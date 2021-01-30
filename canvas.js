@@ -183,7 +183,6 @@ class Grid{
             }
             this.grid.push(tmp)
         }
-        this.update()
     }
 }
 
@@ -216,8 +215,9 @@ class Component{
     random(limits){
         let good = false;
         let type;
+        let base_stuff = [0, 1, 5, 6]
         do{
-            type = Math.floor(Math.random()*9)
+            type = base_stuff[Math.floor(Math.random()*4)]
             good = true
             switch (type) {
                 case 2:
@@ -272,7 +272,8 @@ let gr = new Grid()
 let tool = OBJECT_TYPE.SINGLE_ARROW
 
 $(function (){
-    init_grid()
+    init_grid("exp")
+    init_grid("exp_scores")
     gr.update()
     //gr.draw()
     console.log("Heelo")
@@ -291,12 +292,14 @@ $(function (){
     add_handlers()
     let score = gr.simulate()
     setScore(score)
+    compute_expected()
 
 
     $("#items > td").on("mousedown", function (e){
         this.parentElement.children[tool].classList.remove("active");
         tool = this.cellIndex
         this.classList.add("active")
+        compute_expected()
     });
     updateLimits();
     //updateTool();
@@ -313,6 +316,31 @@ $(function (){
         }
     })
 });
+
+function compute_expected(){
+    let exp_scores = document.getElementById("exp_scores")
+    let tds = exp_scores.getElementsByTagName("td")
+    for(let i = 0; i < GRID_SIZE;i++){
+        for(let j = 0 ; j < GRID_SIZE ; j++){
+            let gri = new Grid()
+            gri.load_from_json(JSON.parse(JSON.stringify(gr)))
+
+            if(tool < 9){
+                if(gri.canAdd(tool)){
+                    gri.updateLimits(i, j, tool)
+                    gri.grid[i][j].type = tool
+                }
+            }else{
+                if(tool === 9){
+                    gri.grid[i][j].rotate();
+                }else{
+                    gri.grid[i][j].rotateA();
+                }
+            }
+            tds[i*GRID_SIZE+j].innerHTML = ""+gri.simulate()
+        }
+    }
+}
 
 function setScore(score){
     let score_span = document.getElementById("score")
@@ -360,11 +388,12 @@ function add_handlers(){
             let score = gr.simulate()
             setScore(score)
             updateLimits()
+            compute_expected()
         });
 }
 
-function init_grid(){
-    let table = document.getElementById("exp")
+function init_grid(table_id){
+    let table = document.getElementById(table_id)
     for(let i=0;i<GRID_SIZE;i++){
         let tr = document.createElement("tr")
         for(let j=0;j<GRID_SIZE;j++){
@@ -383,6 +412,7 @@ function import_base64(){
     let b64 = atob(document.getElementById("import_zone").value)
     let g64 = JSON.parse(b64)
     gr.load_from_json(g64)
+    gr.update()
     let score = gr.simulate()
     setScore(score)
 }
