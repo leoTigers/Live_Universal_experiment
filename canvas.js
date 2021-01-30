@@ -345,6 +345,10 @@ function compute_expected(){
 function setScore(score){
     let score_span = document.getElementById("score")
     score_span.innerHTML = ""+score
+
+    let gscore_span = document.getElementById("Gscore")
+    let prestige_level = +document.getElementById("prestige").value
+    gscore_span.innerHTML = ""+(1 + Math.pow(1.25, prestige_level) * 0.01 * score)
 }
 
 
@@ -415,4 +419,5 @@ function import_base64(){
     gr.update()
     let score = gr.simulate()
     setScore(score)
+    compute_expected()
 }
