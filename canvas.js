@@ -1,14 +1,17 @@
 const GRID_SIZE = 7
 const OBJECT_TYPE = Object.freeze({
-    "SINGLE_ARROW":0,
-    "TRIPLE_ARROW":1,
-    "FIVE_ARROW":2,
-    "ROTATING_ARROW":3,
-    "INFINITE_ARROW":4,
-    "RED_ORB":5,
-    "BLUE_ORB":6,
-    "REFRESH_ORB":7,
-    "REFLECT":8
+    SINGLE_ARROW:0,
+    TRIPLE_ARROW:1,
+    FIVE_ARROW:2,
+    ROTATING_ARROW:3,
+    INFINITE_ARROW:4,
+    ARROW_POSITIVE:5,
+    ARROW_NEGATIVE:6,
+    RED_ORB:7,
+    BLUE_ORB:8,
+    REFRESH_ORB:9,
+    BLACK_ORB:10,
+    REFLECT:11
 })
 
 const MAX_FIVE_ARROW = 4
@@ -18,7 +21,8 @@ const MAX_REFRESH = 1
 const REFLECT_UNLOCK = true
 
 const TOOLS = ["A1.png", "A3.png", "A5.png", "AR.png", "AI.png",
-    "RO.png", "BO.png", "RF.png",
+    "AP.png", "AB.png",
+    "RO.png", "BO.png", "RF.png", "BN.png",
     "RE.png", "RC.png", "RAC.png"]
 
 class Grid{
@@ -51,19 +55,19 @@ class Grid{
 
     canAdd(object_type){
         switch (object_type) {
-            case 2:
+            case OBJECT_TYPE.FIVE_ARROW:
                 if (this.limits[0] === MAX_FIVE_ARROW)
                     return false;
                 break
-            case 3:
+            case OBJECT_TYPE.ROTATING_ARROW:
                 if (this.limits[1] === MAX_ROT_ARROW)
                     return false
                 break
-            case 4:
+            case OBJECT_TYPE.INFINITE_ARROW:
                 if (this.limits[2] === MAX_INF_ARROW)
                     return false
                 break
-            case 7:
+            case OBJECT_TYPE.REFRESH_ORB:
                 if (this.limits[3] === MAX_REFRESH)
                     return false
                 break
@@ -73,30 +77,30 @@ class Grid{
 
     updateLimits(row, col, tool){
         switch (this.grid[row][col].type) {
-            case 2:
+            case OBJECT_TYPE.FIVE_ARROW:
                 this.limits[0]--;
                 break
-            case 3:
+            case OBJECT_TYPE.ROTATING_ARROW:
                 this.limits[1]--;
                 break
-            case 4:
+            case OBJECT_TYPE.INFINITE_ARROW:
                 this.limits[2]--;
                 break
-            case 7:
+            case OBJECT_TYPE.REFRESH_ORB:
                 this.limits[3]--;
                 break
         }
         switch (tool) {
-            case 2:
+            case OBJECT_TYPE.FIVE_ARROW:
                 this.limits[0]++;
                 break
-            case 3:
+            case OBJECT_TYPE.ROTATING_ARROW:
                 this.limits[1]++;
                 break
-            case 4:
+            case OBJECT_TYPE.INFINITE_ARROW:
                 this.limits[2]++;
                 break
-            case 7:
+            case OBJECT_TYPE.REFRESH_ORB:
                 this.limits[3]++;
                 break
         }
@@ -107,6 +111,11 @@ class Grid{
         // starting pos
         let x = -1, y = GRID_SIZE - 1;
         let cur_dir = 3;
+        let effectiveness = +document.getElementById("effectiveness").value
+        let maxJumps = 10+(+document.getElementById("jump").value)*10
+        if (maxJumps === 110)
+            maxJumps = 100000
+        let GValue = 1;
 
         let end = false;
         let score = 0;
@@ -118,34 +127,41 @@ class Grid{
             }
         }
 
+        let c = 0
         do {
             //move
             x += movements[cur_dir][0];
             y += movements[cur_dir][1];
+            c += 1
 
             //check exit cond
-            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE || c > maxJumps) {
                 end = true;
             }
             else {
                 switch (this.grid[y][x].type) {
-                    case 0: case 1: case 2: case 4:
+                    case OBJECT_TYPE.SINGLE_ARROW:
+                    case OBJECT_TYPE.TRIPLE_ARROW:
+                    case OBJECT_TYPE.FIVE_ARROW:
+                    case OBJECT_TYPE.INFINITE_ARROW:
                         if(this.grid[y][x].isActive()){
                             this.grid[y][x].current_uses++;
                             cur_dir = this.grid[y][x].current_rotation
                         }
                         break
-                    case 3:
+                    case OBJECT_TYPE.ROTATING_ARROW:
                         cur_dir = this.grid[y][x].current_rotation
                         this.grid[y][x].current_rotation = (this.grid[y][x].current_rotation + 1) % 8
                         break
-                    case 5:
+                    case OBJECT_TYPE.RED_ORB:
                         score++
+                        GValue += Math.pow(1.05, effectiveness) * 0.01
                         break
-                    case 6:
+                    case OBJECT_TYPE.BLUE_ORB:
                         score--;
+                        GValue -= Math.pow(1.05, effectiveness) * 0.01
                         break
-                    case 7:
+                    case OBJECT_TYPE.REFRESH_ORB:
                         if(this.grid[y][x].isActive()){
                             for (let i = 0; i < GRID_SIZE; i++){
                                 for (let j = 0; j < GRID_SIZE; j++) {
@@ -155,7 +171,7 @@ class Grid{
                             this.grid[y][x].current_uses++;
                         }
                         break
-                    case 8:
+                    case OBJECT_TYPE.REFLECT:
                         if(this.grid[y][x].isActive()){
                             if (cur_dir & 1)
                                 cur_dir = (cur_dir + 4) % 8;
@@ -166,10 +182,28 @@ class Grid{
                             this.grid[y][x].current_uses++
                         }
                         break;
+                    case OBJECT_TYPE.ARROW_POSITIVE:
+                        score++
+                        GValue += Math.pow(1.05, effectiveness) * 0.01
+                        if(GValue > 0){
+                            cur_dir = this.grid[y][x].current_rotation
+                        }
+                        break
+                    case OBJECT_TYPE.ARROW_NEGATIVE:
+                        score--
+                        GValue -= Math.pow(1.05, effectiveness) * 0.01
+                        if(GValue < 0){
+                            cur_dir = this.grid[y][x].current_rotation
+                        }
+                        break
+                    case OBJECT_TYPE.BLACK_ORB:
+                        score *= -1
+                        GValue *= -1
+                        break
                 }
             }
         } while (!end);
-        return score
+        return [score, GValue]
     }
 
     load_from_json(json){
@@ -204,6 +238,8 @@ class Component{
             case OBJECT_TYPE.REFRESH_ORB:
                 return this.current_uses < 1
             case OBJECT_TYPE.REFLECT:
+            case OBJECT_TYPE.ARROW_POSITIVE:
+            case OBJECT_TYPE.ARROW_NEGATIVE:
                 return this.current_uses < 2
             case OBJECT_TYPE.TRIPLE_ARROW:
                 return this.current_uses < 3
@@ -215,30 +251,30 @@ class Component{
     random(limits){
         let good = false;
         let type;
-        let base_stuff = [0, 1, 5, 6]
+        let base_stuff = [0, 1, 7, 8]
         do{
             type = base_stuff[Math.floor(Math.random()*4)]
             good = true
             switch (type) {
-                case 2:
+                case OBJECT_TYPE.FIVE_ARROW:
                     if (limits[0] === MAX_FIVE_ARROW)
                         good = false
                     else
                         limits[0]++
                     break
-                case 3:
+                case OBJECT_TYPE.ROTATING_ARROW:
                     if (limits[1] === MAX_ROT_ARROW)
                         good = false
                     else
                         limits[1]++
                     break
-                case 4:
+                case OBJECT_TYPE.INFINITE_ARROW:
                     if (limits[2] === MAX_INF_ARROW)
                         good = false
                     else
                         limits[2]++
                     break
-                case 7:
+                case OBJECT_TYPE.REFRESH_ORB:
                     if (limits[3] === MAX_REFRESH)
                         good = false
                     else
@@ -262,8 +298,8 @@ class Component{
 
     to_html(){
         let img = document.createElement("img")
-        img.src = "img/"+TOOLS[this.type]
-        img.style = "transform:rotate("+(-135+45*this.rotation)+"deg);"
+        img.src = `img/${TOOLS[this.type]}`
+        img.style = `transform:rotate(${+(-135+45*this.rotation)}deg);`
         return img
     }
 }
@@ -275,8 +311,7 @@ $(function (){
     init_grid("exp")
     init_grid("exp_scores")
     gr.update()
-    //gr.draw()
-    console.log("Heelo")
+
 
     let items = document.getElementById("items")
     for(let i = 0 ; i < TOOLS.length ; i++){
@@ -290,8 +325,8 @@ $(function (){
     }
 
     add_handlers()
-    let score = gr.simulate()
-    setScore(score)
+    let [score, gScore] = gr.simulate()
+    setScore(score, gScore)
     compute_expected()
 
 
@@ -307,13 +342,15 @@ $(function (){
     $("body").on("keydown", function (k){
         if(k.key === "ArrowRight"){
             document.getElementById("items").children[tool].classList.remove("active");
-            tool = (tool+1)%11
+            tool = (tool+1)%TOOLS.length
             document.getElementById("items").children[tool].classList.add("active");
         }else if(k.key === "ArrowLeft"){
             document.getElementById("items").children[tool].classList.remove("active");
-            tool = tool===0?10:tool-1
+            tool = tool===0?TOOLS.length-1:tool-1
             document.getElementById("items").children[tool].classList.add("active");
         }
+
+        compute_expected()
     })
 });
 
@@ -325,39 +362,39 @@ function compute_expected(){
             let gri = new Grid()
             gri.load_from_json(JSON.parse(JSON.stringify(gr)))
 
-            if(tool < 9){
+            if(tool <= OBJECT_TYPE.REFLECT){
                 if(gri.canAdd(tool)){
                     gri.updateLimits(i, j, tool)
                     gri.grid[i][j].type = tool
                 }
             }else{
-                if(tool === 9){
+                if(tool === OBJECT_TYPE.REFLECT+1){
                     gri.grid[i][j].rotate();
                 }else{
                     gri.grid[i][j].rotateA();
                 }
             }
-            tds[i*GRID_SIZE+j].innerHTML = ""+gri.simulate()
+            tds[i*GRID_SIZE+j].innerHTML = `${gri.simulate()[0]}`
         }
     }
 }
 
-function setScore(score){
+function setScore(score, gscore){
     let score_span = document.getElementById("score")
-    score_span.innerHTML = ""+score
+    score_span.innerHTML = `${score}`
 
     let gscore_span = document.getElementById("Gscore")
-    let prestige_level = +document.getElementById("prestige").value
-    gscore_span.innerHTML = ""+(1 + Math.pow(1.25, prestige_level) * 0.01 * score)
+    let prestige_level = +document.getElementById("effectiveness").value
+    gscore_span.innerHTML = `${gscore}` //`${(1 + Math.pow(1.05, prestige_level) * 0.01 * score)}`
 }
 
 
 function updateLimits(){
     let limitSpan = document.getElementById("limits")
     limitSpan.innerHTML = "<br/>Five use arrows : "+gr.limits[0]+"/"+MAX_FIVE_ARROW+
-        "<br/>Rotating arrows : "+gr.limits[1]+"/"+MAX_ROT_ARROW+
-        "<br/>Infinite arrow : "+gr.limits[2]+"/"+MAX_INF_ARROW+
-        "<br/>Refresh orb : "+gr.limits[3]+"/"+MAX_REFRESH
+        `<br/>Rotating arrows : ${gr.limits[1]}/${MAX_ROT_ARROW}` +
+        `<br/>Infinite arrow : ${gr.limits[2]}/${MAX_INF_ARROW}` +
+        `<br/>Refresh orb : ${gr.limits[3]}/${MAX_REFRESH}`
 }
 /*
 function updateTool(){
@@ -375,13 +412,13 @@ function add_handlers(){
             let row = this.parentElement.rowIndex
             console.log(row + "," + col)
 
-            if(tool < 9){
+            if(tool <= OBJECT_TYPE.REFLECT){
                 if(gr.canAdd(tool)){
                     gr.updateLimits(row, col, tool)
                     gr.grid[row][col].type = tool
                 }
             }else{
-                if(tool === 9){
+                if(tool === OBJECT_TYPE.REFLECT+1){
                     gr.grid[row][col].rotate();
                 }else{
                     gr.grid[row][col].rotateA();
@@ -389,8 +426,8 @@ function add_handlers(){
             }
             this.innerHTML = ""
             this.appendChild(gr.grid[row][col].to_html())
-            let score = gr.simulate()
-            setScore(score)
+            let [score, gScore] = gr.simulate()
+            setScore(score, gScore)
             updateLimits()
             compute_expected()
         });
@@ -417,7 +454,7 @@ function import_base64(){
     let g64 = JSON.parse(b64)
     gr.load_from_json(g64)
     gr.update()
-    let score = gr.simulate()
-    setScore(score)
+    let [score, gScore] = gr.simulate()
+    setScore(score, gScore)
     compute_expected()
 }

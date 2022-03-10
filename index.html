@@ -19,10 +19,14 @@
 			</tr>
 		</table>
 		<h2>Score : <span id="score"></span></h2><br/>
-		<label for="prestige"><h2>Prestige level: </h2></label><input onchange="setScore(gr.simulate())"
+		<label for="jump"><h2>Max jump level: </h2></label><input onchange="setScore(...gr.simulate())"
 		                                                              style="width: 50px" type="number"
-		                                                              id="prestige" name="prestige"
-		                                                              min="0" max="100" value="0"><br/>
+		                                                              id="jump" name="jump"
+		                                                              min="0" max="10" value="0"><br/>
+		<label for="effectiveness"><h2>Effectiveness level: </h2></label><input onchange="setScore(...gr.simulate())"
+		                                                              style="width: 50px" type="number"
+		                                                              id="effectiveness" name="effectiveness"
+		                                                              min="0" max="45" value="0"><br/>
 		<h2>Expected G score : <span id="Gscore"></span></h2><br/>
 	</div>
 	<div class="exps">
