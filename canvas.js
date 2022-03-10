@@ -183,17 +183,23 @@ class Grid{
                         }
                         break;
                     case OBJECT_TYPE.ARROW_POSITIVE:
-                        score++
-                        GValue += Math.pow(1.05, effectiveness) * 0.01
-                        if(GValue > 0){
-                            cur_dir = this.grid[y][x].current_rotation
+                        if(this.grid[y][x].isActive()) {
+                            this.grid[y][x].current_uses++;
+                            if(GValue > 0){
+                                cur_dir = this.grid[y][x].current_rotation
+                                score++
+                                GValue += Math.pow(1.05, effectiveness) * 0.01
+                            }
                         }
                         break
                     case OBJECT_TYPE.ARROW_NEGATIVE:
-                        score--
-                        GValue -= Math.pow(1.05, effectiveness) * 0.01
-                        if(GValue < 0){
-                            cur_dir = this.grid[y][x].current_rotation
+                        if(this.grid[y][x].isActive()) {
+                            this.grid[y][x].current_uses++;
+                            if(GValue < 0){
+                                cur_dir = this.grid[y][x].current_rotation
+                                score--
+                                GValue -= Math.pow(1.05, effectiveness) * 0.01
+                            }
                         }
                         break
                     case OBJECT_TYPE.BLACK_ORB:
